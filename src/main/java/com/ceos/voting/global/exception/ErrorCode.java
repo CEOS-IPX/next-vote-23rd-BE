@@ -12,6 +12,7 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "C001", "잘못된 입력값입니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "C002", "인증이 필요합니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C003", "서버 내부 오류가 발생했습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "C004", "해당 요청에 권한이 없습니다."),
 
     /* ========== Auth (A) ========== */
     USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A001", "해당 아이디를 가진 계정이 없습니다."),
