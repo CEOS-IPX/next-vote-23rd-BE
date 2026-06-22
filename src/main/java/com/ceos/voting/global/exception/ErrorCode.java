@@ -33,8 +33,7 @@ public enum ErrorCode {
     SELF_VOTE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "V003", "본인에게는 투표할 수 없습니다."),
     OWN_TEAM_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "V004", "본인 팀에는 투표할 수 없습니다."),
     DUPLICATED_VOTE(HttpStatus.CONFLICT, "V005", "이미 투표하셨습니다."),
-    VOTING_CLOSED(HttpStatus.GONE, "V006", "투표가 마감되었습니다."),
-    VOTING_IN_PROGRESS(HttpStatus.LOCKED, "V007", "아직 투표가 진행 중입니다.");
+    VOTING_CLOSED(HttpStatus.GONE, "V006", "투표가 마감되었습니다.");
 
     private final HttpStatus status;
     private final String code;
