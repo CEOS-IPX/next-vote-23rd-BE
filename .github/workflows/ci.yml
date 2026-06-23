@@ -38,4 +38,4 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: 빌드 및 테스트 통합 실행
-        run: ./gradlew build--no-daemon --parallel --build-cache
+        run: ./gradlew build --no-daemon --parallel --build-cache
