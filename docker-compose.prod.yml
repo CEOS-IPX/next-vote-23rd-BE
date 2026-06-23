@@ -1,0 +1,122 @@
+# ============================================================
+# 운영 서버용 docker-compose.prod.yml
+# ============================================================
+
+# 공통 로깅 설정 (디스크 무한 증가 방지)
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "5"
+
+services:
+
+  # ===== Spring 서버 (메인) =====
+  app-spring:
+    image: ghcr.io/${GITHUB_OWNER}/voting-spring:latest
+    container_name: voting-spring
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env.prod
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: mysql
+      DB_PORT: 3306
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - voting-net
+    logging: *default-logging
+
+  # ===== MySQL =====
+  mysql:
+    image: mysql:8.0
+    container_name: voting-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+09:00
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - voting-net
+    logging: *default-logging
+    # 외부 포트 미노출 (내부 통신만)
+
+  # ===== Redis =====
+  redis:
+    image: redis:7-alpine
+    container_name: voting-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - voting-net
+    logging: *default-logging
+
+  # ===== Nginx 리버스 프록시 =====
+  nginx:
+    image: nginx:alpine
+    container_name: voting-nginx
+    restart: unless-stopped
+    depends_on:
+      app-spring:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    networks:
+      - voting-net
+    logging: *default-logging
+
+  # ===== Certbot (Let's Encrypt SSL 자동 갱신) =====
+  certbot:
+    image: certbot/certbot
+    container_name: voting-certbot
+    restart: unless-stopped
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    logging: *default-logging
+
+volumes:
+  mysql_data:
+  redis_data:
+  certbot_www:
+
+networks:
+  voting-net:
+    driver: bridge
