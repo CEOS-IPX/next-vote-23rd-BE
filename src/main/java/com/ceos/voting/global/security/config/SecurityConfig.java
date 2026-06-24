@@ -3,9 +3,12 @@ package com.ceos.voting.global.security.config;
 import com.ceos.voting.global.security.handler.CustomAccessDeniedHandler;
 import com.ceos.voting.global.security.handler.CustomAuthenticationEntryPoint;
 import com.ceos.voting.global.security.jwt.JwtAuthenticationFilter;
+import com.ceos.voting.global.security.jwt.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,7 +30,9 @@ import java.util.List;
 public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -67,7 +72,8 @@ public class SecurityConfig {
                         // [기본 정책] 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate, objectMapper),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
