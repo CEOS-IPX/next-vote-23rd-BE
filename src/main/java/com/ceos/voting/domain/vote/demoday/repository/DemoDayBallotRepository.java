@@ -9,5 +9,7 @@ import java.util.List;
 
 public interface DemoDayBallotRepository extends JpaRepository<DemoDayBallot, Long> {
 
-    List<DemoDayBallot> findAllByTeamIn(Collection<Team> teams);
+    List<DemoDayBallot> findAllByTeamIn(List<Team> teams);
+
+    long count();
 }

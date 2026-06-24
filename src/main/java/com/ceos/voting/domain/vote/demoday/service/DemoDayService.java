@@ -1,12 +1,20 @@
 package com.ceos.voting.domain.vote.demoday.service;
 
+import com.ceos.voting.domain.user.domain.User;
+import com.ceos.voting.domain.user.repository.UserRepository;
+import com.ceos.voting.domain.vote.demoday.dto.request.DemoDayVoteRequest;
 import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayCandidateResponse;
 import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayCandidatesResponse;
 import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayRankingResponse;
 import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayResultResponse;
+import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayVoteResponse;
 import com.ceos.voting.domain.vote.demoday.repository.DemoDayBallotRepository;
+import com.ceos.voting.domain.vote.demoday.repository.DemoDayParticipationRepository;
 import com.ceos.voting.domain.vote.partleader.domain.DemoDayBallot;
+import com.ceos.voting.domain.vote.partleader.domain.DemoDayParticipation;
 import com.ceos.voting.global.common.Team;
+import com.ceos.voting.global.exception.BusinessException;
+import com.ceos.voting.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +33,44 @@ public class DemoDayService {
 
     private static final int CLOSED_VOTE_COUNT = 20;
 
+    private final UserRepository userRepository;
     private final DemoDayBallotRepository demoDayBallotRepository;
+    private final DemoDayParticipationRepository demoDayParticipationRepository;
+
+    @Transactional
+    public DemoDayVoteResponse castVote(Long voterId, DemoDayVoteRequest request) {
+        User voter = userRepository.findById(voterId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Team team = parseTeam(request.team());
+
+        if (team == voter.getTeam()) {
+            throw new BusinessException(ErrorCode.OWN_TEAM_NOT_ALLOWED);
+        }
+
+        long currentCount = demoDayBallotRepository.count();
+        if (currentCount >= CLOSED_VOTE_COUNT) {
+            throw new BusinessException(ErrorCode.VOTING_CLOSED);
+        }
+
+        if (demoDayParticipationRepository.existsByUserId(voterId)) {
+            throw new BusinessException(ErrorCode.DUPLICATED_VOTE);
+        }
+
+        demoDayParticipationRepository.save(new DemoDayParticipation(voterId));
+        demoDayBallotRepository.save(new DemoDayBallot(team));
+
+        boolean closed = (currentCount + 1) >= CLOSED_VOTE_COUNT;
+        return DemoDayVoteResponse.of(closed);
+    }
+
+    private Team parseTeam(String teamValue) {
+        try {
+            return Team.valueOf(teamValue);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.INVALID_TEAM);
+        }
+    }
 
     public DemoDayCandidatesResponse getDemoDayCandidates() {
         List<DemoDayCandidateResponse> candidates = Arrays.stream(Team.values())

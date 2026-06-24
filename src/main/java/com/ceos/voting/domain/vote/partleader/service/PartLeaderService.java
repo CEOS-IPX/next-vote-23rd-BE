@@ -92,7 +92,7 @@ public class PartLeaderService {
     @Transactional
     public PartLeaderVoteResponse castVote(Long voterId, PartLeaderVoteRequest request) {
         User voter = userRepository.findById(voterId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Candidate candidate = Candidate.findByName(request.name());
 
