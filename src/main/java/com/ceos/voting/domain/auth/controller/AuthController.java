@@ -1,5 +1,7 @@
 package com.ceos.voting.domain.auth.controller;
 
+import com.ceos.voting.domain.auth.dto.request.LoginRequest;
+import com.ceos.voting.domain.auth.dto.response.LoginResponse;
 import com.ceos.voting.domain.auth.dto.request.SignupRequest;
 import com.ceos.voting.domain.auth.dto.response.SignupResponse;
 import com.ceos.voting.domain.auth.service.AuthService;
@@ -17,6 +19,10 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.ok(response));
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
         SignupResponse response = authService.signup(request);
