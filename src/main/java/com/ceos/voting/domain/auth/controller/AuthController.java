@@ -2,10 +2,13 @@ package com.ceos.voting.domain.auth.controller;
 
 import com.ceos.voting.domain.auth.dto.request.LoginRequest;
 import com.ceos.voting.domain.auth.dto.response.LoginResponse;
+import com.ceos.voting.domain.auth.dto.request.SignupRequest;
+import com.ceos.voting.domain.auth.dto.response.SignupResponse;
 import com.ceos.voting.domain.auth.service.AuthService;
 import com.ceos.voting.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,5 +23,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.ok(response));
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
+        SignupResponse response = authService.signup(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(response));
     }
 }
