@@ -1,7 +1,7 @@
 package com.ceos.voting.domain.vote.partleader.repository;
 
 import com.ceos.voting.domain.candidate.domain.Candidate;
-import com.ceos.voting.domain.vote.demoday.domain.PartLeaderBallot;
+import com.ceos.voting.domain.vote.partleader.domain.PartLeaderBallot;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;

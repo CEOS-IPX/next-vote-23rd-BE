@@ -1,4 +1,4 @@
-package com.ceos.voting.domain.vote.partleader.domain;
+package com.ceos.voting.domain.vote.demoday.domain;
 
 import com.ceos.voting.global.entity.BaseEntity;
 import jakarta.persistence.*;
