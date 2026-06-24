@@ -39,6 +39,9 @@ public class AuthService {
     public static final String RT_PREFIX = "RT:";
     public static final String BLACKLIST_PREFIX = "BLACKLIST:";
 
+    private static final long REMEMBER_ME_SECONDS = 60 * 60 * 24 * 30L; // 30일
+    private static final long DEFAULT_RT_SECONDS   = 60 * 60 * 24L;      // 1일
+
     public TokenResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -47,21 +50,23 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
+        long rtExpiresIn = request.isRememberMe() ? REMEMBER_ME_SECONDS : DEFAULT_RT_SECONDS;
 
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
         String refreshToken = jwtTokenProvider.createRefreshToken();
 
         redisTemplate.opsForValue().set(
                 RT_PREFIX + refreshToken,
                 user.getUsername(),
-                Duration.ofSeconds(jwtTokenProvider.getRefreshTokenExpirationSeconds())
+                Duration.ofSeconds(rtExpiresIn)
         );
 
         return TokenResponse.of(
                 accessToken,
                 jwtTokenProvider.getAccessTokenExpirationSeconds(),
                 user,
-                refreshToken
+                refreshToken,
+                rtExpiresIn
         );
     }
 

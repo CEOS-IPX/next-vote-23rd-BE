@@ -64,7 +64,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse tokens = authService.login(request);
 
-        ResponseCookie cookie = CookieUtil.createCookie("refreshToken", tokens.refreshToken(), tokenProvider.getRefreshTokenExpirationSeconds());
+        ResponseCookie cookie = CookieUtil.createCookie("refreshToken", tokens.refreshToken(), tokens.rtExpiresIn());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())

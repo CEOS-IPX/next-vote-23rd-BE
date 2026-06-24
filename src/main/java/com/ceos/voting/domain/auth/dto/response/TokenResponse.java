@@ -7,15 +7,17 @@ public record TokenResponse(
         String tokenType,
         Long expiresIn,
         User user,
-        String refreshToken
+        String refreshToken,
+        long rtExpiresIn
 ) {
-    public static TokenResponse of(String accessToken, Long expiresIn, User user, String refreshToken) {
+    public static TokenResponse of(String accessToken, Long expiresIn, User user, String refreshToken, long rtExpiresIn) {
         return new TokenResponse(
                 accessToken,
                 "Bearer",
                 expiresIn,
                 user,
-                refreshToken
+                refreshToken,
+                rtExpiresIn
         );
     }
 }
