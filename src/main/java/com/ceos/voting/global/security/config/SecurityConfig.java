@@ -2,6 +2,7 @@ package com.ceos.voting.global.security.config;
 
 import com.ceos.voting.global.security.handler.CustomAccessDeniedHandler;
 import com.ceos.voting.global.security.handler.CustomAuthenticationEntryPoint;
+import com.ceos.voting.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,7 +27,7 @@ import java.util.List;
 public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
-    // private final JwtAuthenticationFilter jwtAuthenticationFilter;   // JWT 필터 구현 후 주입
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -64,10 +66,8 @@ public class SecurityConfig {
 
                         // [기본 정책] 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
-                );
-
-        // ===== JWT 필터 추가 =====
-        // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

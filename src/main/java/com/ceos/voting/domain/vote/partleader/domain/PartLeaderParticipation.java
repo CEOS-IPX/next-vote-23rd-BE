@@ -1,13 +1,10 @@
-package com.ceos.voting.domain.vote.demoday.domain;
+package com.ceos.voting.domain.vote.partleader.domain;
 
 import com.ceos.voting.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "part_leader_participation")
