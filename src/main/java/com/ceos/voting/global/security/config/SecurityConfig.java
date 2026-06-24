@@ -4,7 +4,7 @@ import com.ceos.voting.global.security.handler.CustomAccessDeniedHandler;
 import com.ceos.voting.global.security.handler.CustomAuthenticationEntryPoint;
 import com.ceos.voting.global.security.jwt.JwtAuthenticationFilter;
 import com.ceos.voting.global.security.jwt.JwtTokenProvider;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

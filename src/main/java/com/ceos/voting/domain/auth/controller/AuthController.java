@@ -11,6 +11,8 @@ import com.ceos.voting.global.response.ApiResponse;
 import com.ceos.voting.global.security.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -33,7 +35,14 @@ public class AuthController {
 
     public static final String BEARER = "Bearer ";
 
-    @Operation(summary = "회원가입", description = "사용자를 등록합니다.")
+    @Operation(summary = "회원가입", description = "23기 멤버 중 본인을 선택하여 가입합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "회원가입 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 오류 (C001) / 비밀번호 불일치 (U001) / 잘못된 후보 (U002)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "아이디 중복 (U003) / 이메일 중복 (U004) / 후보 중복 (U005)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 내부 오류 (C003)")
+    })
+    @SecurityRequirements({})
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
         SignupResponse response = authService.signup(request);
@@ -43,7 +52,14 @@ public class AuthController {
                 .body(ApiResponse.ok(response));
     }
 
-    @Operation(summary = "로그인", description = "로그인하여 JWT 토큰을 발급받습니다.")
+    @Operation(summary = "로그인", description = "아이디/비밀번호 인증 후 AccessToken을 반환하고 RefreshToken을 쿠키에 설정합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 오류 (C001)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "존재하지 않는 아이디 (A001) / 비밀번호 불일치 (A002)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 내부 오류 (C003)")
+    })
+    @SecurityRequirements({})
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse tokens = authService.login(request);
@@ -57,8 +73,14 @@ public class AuthController {
                 );
     }
 
-    @Operation(summary = "토큰 재발급", description = "쿠키의 Refresh Token을 이용해 새로운 토큰 쌍을 발급 받습니다.")
-    @PostMapping("/reissue")
+    @Operation(summary = "AccessToken 재발급", description = "쿠키의 RefreshToken으로 새 AccessToken을 발급합니다. RTR 적용.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "재발급 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "RT 없음 (A003) / RT 유효하지 않음 (A004)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 내부 오류 (C003)")
+    })
+    @SecurityRequirements({})
+    @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<ReissueResponse>> reissue(
             @Parameter(hidden = true)
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
@@ -76,7 +98,12 @@ public class AuthController {
                 .body(ApiResponse.ok(ReissueResponse.of(info.accessToken(), info.expiresIn())));
     }
 
-    @Operation(summary = "로그아웃", description = "Refresh Token을 삭제하고 쿠키를 비웁니다.")
+    @Operation(summary = "로그아웃", description = "Redis에서 RefreshToken을 삭제하고 쿠키를 만료시킵니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요 (C002)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 내부 오류 (C003)")
+    })
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
             HttpServletRequest request,
