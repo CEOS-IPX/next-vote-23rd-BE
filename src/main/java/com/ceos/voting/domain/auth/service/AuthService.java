@@ -2,6 +2,8 @@ package com.ceos.voting.domain.auth.service;
 
 import com.ceos.voting.domain.auth.dto.request.LoginRequest;
 import com.ceos.voting.domain.auth.dto.response.LoginResponse;
+import com.ceos.voting.domain.auth.dto.response.ReissueInfo;
+import com.ceos.voting.domain.auth.dto.response.TokenResponse;
 import com.ceos.voting.domain.user.domain.User;
 import com.ceos.voting.domain.user.repository.UserRepository;
 import com.ceos.voting.global.exception.BusinessException;
@@ -17,9 +19,12 @@ import com.ceos.voting.global.common.Team;
 import com.ceos.voting.global.exception.BusinessException;
 import com.ceos.voting.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -29,8 +34,12 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final StringRedisTemplate redisTemplate;
 
-    public LoginResponse login(LoginRequest request) {
+    public static final String RT_PREFIX = "RT:";
+    public static final String BLACKLIST_PREFIX = "BLACKLIST:";
+
+    public TokenResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -38,12 +47,21 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(user);
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
 
-        return LoginResponse.of(
+        String refreshToken = jwtTokenProvider.createRefreshToken();
+
+        redisTemplate.opsForValue().set(
+                RT_PREFIX + refreshToken,
+                user.getUsername(),
+                Duration.ofSeconds(jwtTokenProvider.getRefreshTokenExpirationSeconds())
+        );
+
+        return TokenResponse.of(
                 accessToken,
                 jwtTokenProvider.getAccessTokenExpirationSeconds(),
-                user
+                user,
+                refreshToken
         );
     }
 
@@ -61,6 +79,52 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         return SignupResponse.from(savedUser);
+    }
+
+    public ReissueInfo reissue(String refreshToken) {
+        String redisKey = RT_PREFIX + refreshToken;
+
+        String userName = redisTemplate.opsForValue().get(redisKey);
+
+        if (userName == null)
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        redisTemplate.delete(redisKey);
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(user.getId());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken();
+
+        redisTemplate.opsForValue().set(
+                RT_PREFIX + newRefreshToken,
+                user.getUsername(),
+                Duration.ofSeconds(jwtTokenProvider.getRefreshTokenExpirationSeconds())
+        );
+
+        return ReissueInfo.of(newAccessToken,
+                jwtTokenProvider.getAccessTokenExpirationSeconds(),
+                newRefreshToken
+        );
+    }
+
+    public void logout(String accessToken, String refreshToken) {
+
+        if (refreshToken != null)
+            redisTemplate.delete(RT_PREFIX + refreshToken);
+
+        if (accessToken != null) {
+            long remainingTime = jwtTokenProvider.getRemainingExpiration(accessToken);
+
+            if (remainingTime > 0) {
+                redisTemplate.opsForValue().set(
+                        BLACKLIST_PREFIX + accessToken,
+                        "logout",
+                        Duration.ofMillis(remainingTime)
+                );
+            }
+        }
     }
 
     private void validatePasswordConfirm(String password, String passwordConfirm) {
