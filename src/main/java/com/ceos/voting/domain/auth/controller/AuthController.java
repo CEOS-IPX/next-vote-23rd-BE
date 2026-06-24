@@ -80,7 +80,7 @@ public class AuthController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 내부 오류 (C003)")
     })
     @SecurityRequirements({})
-    @PostMapping("/refresh")
+    @PostMapping("/reissue")
     public ResponseEntity<ApiResponse<ReissueResponse>> reissue(
             @Parameter(hidden = true)
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {

@@ -23,7 +23,7 @@ public record SignupRequest(
         @Email(message = "이메일 형식이 올바르지 않습니다.")
         String email,
 
-        @Schema(description = "본인 이름", example = "강다혜")
+        @Schema(description = "본인 이름", example = "김태익")
         @NotBlank(message = "이름은 필수입니다.")
         String name,
 

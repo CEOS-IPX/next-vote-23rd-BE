@@ -14,7 +14,7 @@ public final class SecurityWhitelist {
             // 인증 관련 API
             "/api/auth/signup",                       // 회원가입
             "/api/auth/login",                        // 로그인
-            "/api/auth/refresh",                      // AccessToken 재발급 (RT 쿠키로 인증)
+            "/api/auth/reissue",                      // AccessToken 재발급 (RT 쿠키로 인증)
 
             // 후보/멤버 조회 (비로그인도 페이지 접근 가능)
             "/api/candidates",                        // 회원가입 dropdown용 후보 조회
