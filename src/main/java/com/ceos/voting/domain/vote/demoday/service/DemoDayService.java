@@ -1,5 +1,7 @@
 package com.ceos.voting.domain.vote.demoday.service;
 
+import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayCandidateResponse;
+import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayCandidatesResponse;
 import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayRankingResponse;
 import com.ceos.voting.domain.vote.demoday.dto.response.DemoDayResultResponse;
 import com.ceos.voting.domain.vote.demoday.repository.DemoDayBallotRepository;
@@ -19,11 +21,19 @@ import java.util.stream.IntStream;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class DemoDayResultService {
+public class DemoDayService {
 
     private static final int CLOSED_VOTE_COUNT = 20;
 
     private final DemoDayBallotRepository demoDayBallotRepository;
+
+    public DemoDayCandidatesResponse getDemoDayCandidates() {
+        List<DemoDayCandidateResponse> candidates = Arrays.stream(Team.values())
+                .map(DemoDayCandidateResponse::from)
+                .toList();
+
+        return DemoDayCandidatesResponse.of(candidates);
+    }
 
     public DemoDayResultResponse getDemoDayResult() {
         List<Team> teams = Arrays.asList(Team.values());

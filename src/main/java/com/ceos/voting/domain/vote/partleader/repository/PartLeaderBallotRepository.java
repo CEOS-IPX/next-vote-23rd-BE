@@ -10,4 +10,6 @@ import java.util.List;
 public interface PartLeaderBallotRepository extends JpaRepository<PartLeaderBallot, Long> {
 
     List<PartLeaderBallot> findAllByCandidateIn(Collection<Candidate> candidates);
+
+    long countByCandidateIn(Collection<Candidate> candidates);
 }
