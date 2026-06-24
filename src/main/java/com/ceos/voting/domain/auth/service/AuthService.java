@@ -45,6 +45,7 @@ public class AuthService {
                 jwtTokenProvider.getAccessTokenExpirationSeconds(),
                 user
         );
+    }
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
