@@ -1,6 +1,7 @@
 package com.ceos.voting.global.security.handler;
 
 import com.ceos.voting.global.exception.ErrorCode;
+import com.ceos.voting.global.response.ApiResponse;
 import com.ceos.voting.global.response.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -35,12 +36,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                errorCode.getStatus().value(),
-                errorCode.getCode(),
-                errorCode.getMessage()
-        );
+        ApiResponse<?> apiResponse = ApiResponse.fail(errorCode);
 
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 }

@@ -1,6 +1,7 @@
 package com.ceos.voting.global.security.handler;
 
 import com.ceos.voting.global.exception.ErrorCode;
+import com.ceos.voting.global.response.ApiResponse;
 import com.ceos.voting.global.response.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -27,7 +28,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
 
-        log.error("[인증 오류] URI: {}", request.getRequestURI());
+        log.warn("[인가 오류] URI: {}", request.getRequestURI());
 
         ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
 
@@ -35,12 +36,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                errorCode.getStatus().value(),
-                errorCode.getCode(),
-                errorCode.getMessage()
-        );
+        ApiResponse<?> apiResponse = ApiResponse.fail(errorCode);
 
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 }
