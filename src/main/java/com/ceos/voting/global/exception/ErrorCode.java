@@ -21,6 +21,12 @@ public enum ErrorCode {
     REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "A004", "유효하지 않은 RefreshToken입니다."),
     REFRESH_TOKEN_MISMATCH(HttpStatus.UNAUTHORIZED, "A005", "저장된 RefreshToken과 일치하지 않습니다."),
 
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "A006", "만료된 AccessToken입니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A007", "유효하지 않은 혹은 변조된 토큰입니다."),
+    LOGOUT_TOKEN(HttpStatus.UNAUTHORIZED, "A008", "이미 로그아웃 처리된 토큰입니다."),
+    MISSING_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A009", "쿠키에 refreshToken이 없습니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED,"A010", "유효하지 않거나 만료된 refreshToken입니다."),
+
     /* ========== User / Signup (U) ========== */
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "U001", "비밀번호와 비밀번호 재확인이 일치하지 않습니다."),
     INVALID_CANDIDATE(HttpStatus.BAD_REQUEST, "U002", "유효하지 않은 후보입니다."),
