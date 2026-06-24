@@ -41,8 +41,7 @@ public class PartLeaderService {
     public PartLeaderCandidatesResponse getPartLeaderCandidates(String partValue) {
         Part part = parsePart(partValue);
 
-        List<PartLeaderCandidateResponse> candidates = Arrays.stream(Candidate.values())
-                .filter(candidate -> candidate.getPart() == part)
+        List<PartLeaderCandidateResponse> candidates = Candidate.findByPart(part).stream()
                 .map(PartLeaderCandidateResponse::from)
                 .toList();
 
