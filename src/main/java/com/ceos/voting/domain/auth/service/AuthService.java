@@ -50,7 +50,8 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
-        long rtExpiresIn = request.isRememberMe() ? REMEMBER_ME_SECONDS : DEFAULT_RT_SECONDS;
+        long redisTtl = request.isRememberMe() ? REMEMBER_ME_SECONDS : DEFAULT_RT_SECONDS;
+        long cookieMaxAge = request.isRememberMe() ? REMEMBER_ME_SECONDS : -1L;
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());
         String refreshToken = jwtTokenProvider.createRefreshToken();
@@ -58,7 +59,7 @@ public class AuthService {
         redisTemplate.opsForValue().set(
                 RT_PREFIX + refreshToken,
                 user.getUsername(),
-                Duration.ofSeconds(rtExpiresIn)
+                Duration.ofSeconds(redisTtl)
         );
 
         return TokenResponse.of(
@@ -66,7 +67,7 @@ public class AuthService {
                 jwtTokenProvider.getAccessTokenExpirationSeconds(),
                 user,
                 refreshToken,
-                rtExpiresIn
+                cookieMaxAge
         );
     }
 
